@@ -1,8 +1,8 @@
 redis-hash
 ===============
 
-[![Build Status](https://travis-ci.org/paywell/redis-hash.svg?branch=master)](https://travis-ci.org/paywell/redis-hash)
-[![Dependency Status](https://img.shields.io/david/paywell/redis-hash.svg?style=flat)](https://david-dm.org/paywell/redis-hash)
+[![Build Status](https://travis-ci.org/lykmapipo/redis-hash.svg?branch=master)](https://travis-ci.org/lykmapipo/redis-hash)
+[![Dependency Status](https://img.shields.io/david/lykmapipo/redis-hash.svg?style=flat)](https://david-dm.org/lykmapipo/redis-hash)
 [![npm version](https://badge.fury.io/js/redis-hash.svg)](https://badge.fury.io/js/redis-hash)
 
 redis hash utilities for nodejs
