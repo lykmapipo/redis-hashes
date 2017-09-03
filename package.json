@@ -1,5 +1,5 @@
 {
-  "name": "redis-hash",
+  "name": "redis-hashes",
   "version": "0.1.0",
   "description": "redis hash utilities for nodejs",
   "main": "index.js",
@@ -8,10 +8,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lykmapipo/redis-hash.git"
+    "url": "https://github.com/lykmapipo/redis-hashes.git"
   },
   "keywords": [
-    "byteskode",
     "redis",
     "reds",
     "factory",
@@ -32,9 +31,9 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lykmapipo/redis-hash/issues"
+    "url": "https://github.com/lykmapipo/redis-hashes/issues"
   },
-  "homepage": "https://github.com/lykmapipo/redis-hash",
+  "homepage": "https://github.com/lykmapipo/redis-hashes",
   "devDependencies": {
     "chai": "^4.1.2",
     "faker": "^4.1.0",

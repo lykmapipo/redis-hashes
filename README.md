@@ -1,9 +1,9 @@
-redis-hash
+redis-hashes
 ===============
 
-[![Build Status](https://travis-ci.org/lykmapipo/redis-hash.svg?branch=master)](https://travis-ci.org/lykmapipo/redis-hash)
-[![Dependency Status](https://img.shields.io/david/lykmapipo/redis-hash.svg?style=flat)](https://david-dm.org/lykmapipo/redis-hash)
-[![npm version](https://badge.fury.io/js/redis-hash.svg)](https://badge.fury.io/js/redis-hash)
+[![Build Status](https://travis-ci.org/lykmapipo/redis-hashes.svg?branch=master)](https://travis-ci.org/lykmapipo/redis-hashes)
+[![Dependency Status](https://img.shields.io/david/lykmapipo/redis-hashes.svg?style=flat)](https://david-dm.org/lykmapipo/redis-hashes)
+[![npm version](https://badge.fury.io/js/redis-hashes.svg)](https://badge.fury.io/js/redis-hashes)
 
 redis hash utilities for nodejs
 
@@ -13,14 +13,14 @@ redis hash utilities for nodejs
 
 ## Installation
 ```sh
-$ npm install --save redis-hash
+$ npm install --save redis-hashes
 ```
 
 ## Usage
 
 ```javascript
-//initialize redis-hash with default options
-const redis = require('redis-hash')([options]);
+//initialize redis-hashes with default options
+const redis = require('redis-hashes')([options]);
 
 //save
 const user = ...;
@@ -58,7 +58,7 @@ hash.search(<search_query>, function (error, users) {
 To initialize `redis` with custom options use
 
 ```js
-const redis = require('redis-hash')({
+const redis = require('redis-hashes')({
     prefix:'q',
     separator:'-',
     redis: {
