@@ -31,10 +31,11 @@ hash.get(<id>, function(error, user){
    ...
 });
 
-//get multiple users
-hash.get([<id>, <id>], function(error, users){
+//get single user and select specified fields
+hash.get(<id>, { fields: 'name, email'}, function(error, user){
    ...
 });
+
 
 //get multiple users
 hash.get(<id>, <id>, function(error, users){
@@ -94,12 +95,17 @@ hash.save(user, {collection: 'users' }, function (error, saved) {
 });
 ```
 
-#### `get(...keys,done:Function)`
+#### `get(...keys,[{ fields: String|Array<String> }],done:Function)`
 Get single or multiple saved object using their keys
 
 ```js
 //get single
 hash.get(<id>, function(error, object){
+   ...
+});
+
+//get single
+hash.get(<id>, { fields: 'name, email'}, function(error, object){
    ...
 });
 
@@ -109,7 +115,17 @@ hash.get([<id>, <id>], function(error, objects){
 });
 
 //get multiple object
+hash.get([<id>, <id>], { fields: 'name, email'},  function(error, objects){
+   ...
+});
+
+//get multiple object
 hash.get(<id>, <id>, function(error, objects){
+   ...
+});
+
+//get multiple object
+hash.get(<id>, <id>, { fields: 'name, email'}, function(error, objects){
    ...
 });
 ```
