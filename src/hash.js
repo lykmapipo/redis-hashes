@@ -15,6 +15,7 @@
 
 
 //global dependencies
+const path = require('path');
 const _ = require('lodash');
 const async = require('async');
 const traverse = require('traverse');
@@ -23,6 +24,10 @@ const reds = require('reds');
 const flat = require('flat').flatten;
 const unflat = require('flat').unflatten;
 const redis = require('redis-clients')();
+
+
+//local dependencies
+const query = require(path.join(__dirname, 'query'));
 
 
 //initialize defaults settings
@@ -290,12 +295,16 @@ exports.save = exports.create = function (object, options, done) {
  * @name get
  * @description get objects from redis
  * @param  {String|[String]}   keys    a single or collection of existing keys
+ * @param  {Object} [criteria] optional selection criteria
+ * @param  {Array} [criteria.fields] optional fields to select
  * @param  {Function} done   a callback to invoke on success or failure
  * @return {Object|[Object]} single or collection of existing hash
  * @since 0.1.0
  * @public
  */
 exports.get = function (...keys) {
+
+  //TODO refactor to query?
 
   //normalize keys to array
   keys = [].concat(...keys);
@@ -305,16 +314,35 @@ exports.get = function (...keys) {
 
   //obtain callback
   const done = _.last(keys);
+  //drop callback if provided
+  if (_.isFunction(done)) {
+    keys = _.initial(keys);
+  }
 
-  //obtain keys
-  keys = _.initial(keys);
+  //obtain selection criteria if specified
+  let criteria = _.last(keys);
+  criteria = _.isPlainObject(criteria) ? criteria : undefined;
+  //drop criteria if provided
+  if (criteria) {
+    //shape criteria to ensure fields are in array
+    criteria.fields = query.fields(criteria.fields);
+    keys = _.initial(keys);
+  }
+  //check if there are fields
+  const criteriaHasFields = (criteria && criteria.fields);
 
   //initiate multi command client
   const _client = exports.multi();
 
   //prepare multiple hgetall
   _.forEach(keys, function (key) {
-    _client.hgetall(key);
+
+    //select specified hash fields
+    if (criteriaHasFields) { _client.hmget(key, criteria.fields); }
+
+    //select all hash fields
+    else { _client.hgetall(key); }
+
   });
 
   //execute batch / multi commands
@@ -328,18 +356,37 @@ exports.get = function (...keys) {
 
         //unflatten object from redis
         object = unflat(object);
+
         //parse object
         object = exports.deserialize(object);
 
-        return object;
+        //ensure selected fields name
+        //NOTE: redis return fields in order as they have requested
+        if (criteriaHasFields) {
+          _.forEach(object, function (value, key) {
+            const fieldName = criteria.fields[key];
+            if (fieldName) {
+              object[fieldName] = value;
+              delete object[key];
+            }
+          });
+        }
+
+        //double unflat the object in case of 
+        //specified fields for selections
+        return unflat(object);
+
       });
 
       //ensure single or multi objects
       objects = keys.length === 1 ? _.first(objects) : objects;
+
     }
 
     done(error, objects);
+
   });
+
 };
 
 
@@ -406,4 +453,3 @@ exports.search = function (options, done) {
 //TODO count
 //TODO build metadata if not provided
 //TODO sorting
-//TODO select specific fields

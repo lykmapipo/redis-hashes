@@ -72,18 +72,17 @@ describe('hash', function () {
     let _idx, _idy;
     let objectx = hash.deserialize(faker.helpers.userCard());
     let objecty = hash.deserialize(faker.helpers.userCard());
+    const fields = ['name', 'email', 'phone', 'company.name'];
 
     before(function (done) {
-      hash.save(objectx, function (error,
-        _object) {
+      hash.save(objectx, function (error, _object) {
         _idx = _object._id;
         done(error, _object);
       });
     });
 
     before(function (done) {
-      hash.save(objecty, function (error,
-        _object) {
+      hash.save(objecty, function (error, _object) {
         _idy = _object._id;
         done(error, _object);
       });
@@ -97,6 +96,42 @@ describe('hash', function () {
         done(error, _object);
       });
     });
+
+    it(
+      'should be able to fetch only specified fields of a single object',
+      function (done) {
+        hash.get(_idx, { fields: fields }, function (error, _object) {
+          expect(_object._id).to.be.equal(_idx);
+          expect(_object.name).to.be.equal(objectx.name);
+          expect(_object.email).to.be.equal(objectx.email);
+          expect(_object.phone).to.be.equal(objectx.phone);
+          expect(_object.company.name)
+            .to.be.equal(objectx.company.name);
+          done(error, _object);
+        });
+      });
+
+    it(
+      'should be able to fetch only specified fields of a single object',
+      function (done) {
+        hash.get(_idx, { fields: 'name' }, function (error, _object) {
+          expect(_object._id).to.be.equal(_idx);
+          expect(_object.name).to.be.equal(objectx.name);
+          done(error, _object);
+        });
+      });
+
+    it(
+      'should be able to fetch only specified fields of a single object',
+      function (done) {
+        hash.get(_idx, { fields: 'name, email' }, function (error,
+          _object) {
+          expect(_object._id).to.be.equal(_idx);
+          expect(_object.name).to.be.equal(objectx.name);
+          expect(_object.email).to.be.equal(objectx.email);
+          done(error, _object);
+        });
+      });
 
     it('should be able to fetch multiple objects', function (done) {
       hash.get([_idx, _idy], function (error, objects) {
@@ -113,6 +148,18 @@ describe('hash', function () {
         done(error, objects);
       });
     });
+
+    it(
+      'should be able to fetch multiple object with only specified fields',
+      function (done) {
+        hash.get(_idx, _idy, { fields: fields }, function (error,
+          objects) {
+          expect(error).to.not.exist;
+          expect(objects).to.have.have.length(2);
+          done(error, objects);
+        });
+      });
+
   });
 
   describe('search', function () {
