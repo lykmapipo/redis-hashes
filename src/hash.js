@@ -8,8 +8,7 @@
  * @author lally elias<lallyelias87@gmail.com>
  * @singleton
  * @public
- * @since 0.1.0
- * @version 0.2.0
+ * @version 0.3.0
  * @see  {@link https://github.com/lykmapipo/redis-hash}
  */
 
@@ -383,9 +382,68 @@ exports.get = function (...keys) {
 
     }
 
+    //ensure objects exists
+    if (_.isEmpty(objects)) {
+      error = error || new Error();
+      error.message = 'Not Found';
+      error.status = 404;
+      objects = undefined;
+    }
+
     done(error, objects);
 
   });
+
+};
+
+
+/**
+ * @function
+ * @name remove
+ * @description remove objects from redis
+ * @param  {String|[String]}   keys    a single or collection of existing keys
+ * @param  {Function} done   a callback to invoke on success or failure
+ * @return {Object|[Object]} single or collection of existing hash
+ * @since 0.3.0
+ * @public
+ */
+exports.remove = function (...keys) {
+  //TODO refactor to query?
+
+  //normalize keys to array
+  keys = [].concat(...keys);
+
+  //compact and ensure unique keys
+  keys = _.uniq(_.compact(keys));
+
+  //obtain callback
+  const done = _.last(keys);
+  //drop callback if provided
+  if (_.isFunction(done)) {
+    keys = _.initial(keys);
+  }
+
+  //ensure keys
+  if (keys && keys.length > 0) {
+    //initiate multi command client
+    const _client = exports.multi();
+
+    //delete each keys in transaction
+    _client.del(keys);
+
+    //execute deletes in batch
+    //TODO shape the returned response
+    _client.exec(done);
+
+  }
+
+  //reply with bad request
+  //as no keys specified
+  else {
+    let error = new Error('Missing Keys');
+    error.status = 400;
+    done(error);
+  }
 
 };
 
@@ -400,7 +458,7 @@ exports.get = function (...keys) {
  * @param  {String}   options.q    search term. default to ''
  * @param  {String|Array<String>}   options.fields    fields to select
  * @param  {Function} done   a callback to invoke on success or failure
- * @since 0.2.0
+ * @since 0.1.0
  * @public
  */
 exports.search = function (options, done) {
@@ -456,5 +514,10 @@ exports.search = function (options, done) {
 //TODO pagination
 //TODO count
 //TODO sorting
+//TODO add timestamps(createdAt, updatedAt)
+//TODO implement remove
 //TODO metadata
+//TODO support unique secondary indexes
 //TODO build metadata if not provided
+//TODO benchmarks
+//TODO improve test coverage

@@ -234,6 +234,41 @@ describe('hash', function () {
       });
   });
 
+  describe('remove', function () {
+    let _id;
+    const object = hash.deserialize(faker.helpers.userCard());
+
+    before(function () {
+      redis.clear();
+    });
+
+    before(function (done) {
+      hash.save(object, function (error, _object) {
+        _id = _object._id;
+        done(error, _object);
+      });
+    });
+
+    it(
+      'should be able to delete existing object',
+      function (done) {
+        hash.remove(_id, function (error, result /*should it be deleted object*/ ) {
+          if (error) { done(error); }
+
+          //continue with assertions
+          expect(result).to.exists;
+          //ensure doesnt exists
+          hash.get(_id, function (error, found) {
+            expect(error).to.exist;
+            expect(error.status).to.be.equal(404);
+            expect(found).to.not.exist;
+            done();
+          });
+        });
+      });
+
+  });
+
   after(function (done) {
     redis.clear(done);
   });

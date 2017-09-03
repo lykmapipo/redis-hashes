@@ -47,6 +47,18 @@ hash.search(<search_query>, function (error, users) {
     ...
 });
 
+
+//remove single users
+hash.get(<id>, function(error, results){
+   ...
+});
+
+
+//remove multiple users
+hash.get(<id>, <id>, function(error, results){
+   ...
+});
+
 ...
 
 ```
@@ -167,6 +179,27 @@ hash.search({
     fields: 'name, email'
   }, function (error, objects) {
     ...
+});
+```
+
+#### `remove(...keys,done:Function)`
+Remove single or multiple saved object using their keys
+
+```js
+//remove single
+hash.remove(<id>, function(error, object){
+   ...
+});
+
+//remove multiple object
+hash.remove([<id>, <id>], function(error, objects){
+   ...
+});
+
+
+//remove multiple object
+hash.remove(<id>, <id>, function(error, objects){
+   ...
 });
 ```
 
