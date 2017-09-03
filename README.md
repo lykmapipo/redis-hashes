@@ -84,12 +84,12 @@ Options:
 
 ```js
 const object = ...;
-hash.save(object, function (error, _object) {
+hash.save(object, function (error, saved) {
     ...
 });
 
 const user = ...;
-hash.save(user, {collection: 'users' }, function (error, _object) {
+hash.save(user, {collection: 'users' }, function (error, saved) {
     ...
 });
 ```
@@ -130,7 +130,7 @@ hash.search(<search_query>, function (error, objects) {
 
 //search specific collection
 hash.search({
-    q: objectx.username,
+    q: <search_query>,
     collection: 'users',
     type:'or'
   }, function (error, objects) {
