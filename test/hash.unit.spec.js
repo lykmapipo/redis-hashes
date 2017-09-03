@@ -217,6 +217,21 @@ describe('hash', function () {
         done(error, objects);
       });
     });
+
+    it(
+      'should be able to search saved objects and select specified fields',
+      function (done) {
+        hash
+          .search({ q: objectx.username, fields: 'name, email' },
+            function (error, objects) {
+              expect(error).to.not.exist;
+              expect(objects).to.have.have.length(1);
+              const _object = objects[0];
+              delete _object._id;
+              expect(_object.name).to.be.eql(objectx.name);
+              done(error, objects);
+            });
+      });
   });
 
   after(function (done) {

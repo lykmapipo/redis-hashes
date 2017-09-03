@@ -130,7 +130,7 @@ hash.get(<id>, <id>, { fields: 'name, email'}, function(error, objects){
 });
 ```
 
-#### `search(options:String|Object,done:Function)`
+#### `search(options:String|Object,[{ fields: String|Array<String>}],done:Function)`
 Search existing objects.
 
 Options:
@@ -144,11 +144,27 @@ hash.search(<search_query>, function (error, objects) {
     ...
 });
 
+//search default collection and select specified fields
+hash
+  .search({q:<search_query>, fields: 'name, email'}, function (error, objects) {
+    ...
+});
+
 //search specific collection
 hash.search({
     q: <search_query>,
     collection: 'users',
     type:'or'
+  }, function (error, objects) {
+    ...
+});
+
+//search specific collection and select specified fields
+hash.search({
+    q: <search_query>,
+    collection: 'users',
+    type:'or',
+    fields: 'name, email'
   }, function (error, objects) {
     ...
 });

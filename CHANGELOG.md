@@ -4,4 +4,4 @@
 - Initial implementation
 
 ## 0.2.0 - 2016-09-04
-- Allow selecting specific fields from hash
+- Allow selecting specific fields from hash.get and hash.search

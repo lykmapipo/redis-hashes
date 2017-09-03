@@ -9,7 +9,7 @@
  * @singleton
  * @public
  * @since 0.1.0
- * @version 0.1.0
+ * @version 0.2.0
  * @see  {@link https://github.com/lykmapipo/redis-hash}
  */
 
@@ -398,6 +398,7 @@ exports.get = function (...keys) {
  * @param  {String}   options.collection    searched collections. default to hash
  * @param  {String}   options.type    search operator(and / or). default to or
  * @param  {String}   options.q    search term. default to ''
+ * @param  {String|Array<String>}   options.fields    fields to select
  * @param  {Function} done   a callback to invoke on success or failure
  * @since 0.2.0
  * @public
@@ -430,7 +431,11 @@ exports.search = function (options, done) {
         search.query(options.q).type(options.type).end(next);
       },
       function onSearchEnd(keys, next) {
-        exports.get(keys, next); // get all objects from redis
+        if (options.fields) {
+          exports.get(keys, { fields: options.fields }, next);
+        } else {
+          exports.get(keys, next);
+        }
       },
       function normalizeResults(results, next) {
         results = [].concat(results);
@@ -449,7 +454,7 @@ exports.search = function (options, done) {
 
 
 //TODO pagination
-//TODO metadata
 //TODO count
-//TODO build metadata if not provided
 //TODO sorting
+//TODO metadata
+//TODO build metadata if not provided
