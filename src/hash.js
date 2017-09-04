@@ -8,7 +8,7 @@
  * @author lally elias<lallyelias87@gmail.com>
  * @singleton
  * @public
- * @version 0.4.0
+ * @version 0.4.1
  * @see  {@link https://github.com/lykmapipo/redis-hash}
  */
 

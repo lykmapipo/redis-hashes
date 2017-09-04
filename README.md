@@ -54,13 +54,13 @@ hash.search(<search_query>, function (error, users) {
 
 
 //remove single users
-hash.get(<id>, function(error, results){
+hash.remove(<id>, function(error, results){
    ...
 });
 
 
 //remove multiple users
-hash.get(<id>, <id>, function(error, results){
+hash.remove(<id>, <id>, function(error, results){
    ...
 });
 
