@@ -22,9 +22,14 @@ $ npm install --save redis-hashes
 //initialize redis-hashes with default options
 const redis = require('redis-hashes')([options]);
 
-//save
+//save single user
 const user = ...;
 hash.save(user, {collection: 'users' }, done);
+
+//save multiple users
+const users = ...;
+hash.save(users, {collection: 'users' }, done);
+
 
 //get single user
 hash.get(<id>, function(error, user){
@@ -85,10 +90,10 @@ const redis = require('redis-hashes')({
 ```
 
 ## API
-Store object into redis [hash datatype](http://redis.io/commands/HSET). Before saving the whole of object is [flatten'ed](https://github.com/hughsk/flat) and serialized. i.e all `dates` will be converted to `timestamps` etc. 
 
-#### `save(object:Object,[options:Object],done:Fuction)`
-Save given object as a [flat](https://github.com/hughsk/flat) redis hash.
+### `save(objects:Object|Object[],[options:Object],done:Fuction)`
+Store`(create or update)` object(s) into redis [hash datatype](http://redis.io/commands/HSET). Before saving the whole of object is [flatten'ed](https://github.com/hughsk/flat) and serialized. i.e all `dates` will be converted to `timestamps` etc.
+
 
 Options:
 - `index:Boolean` - whether to [index](https://github.com/tj/reds) the object or not for search. default to `true`.
@@ -105,9 +110,20 @@ const user = ...;
 hash.save(user, {collection: 'users' }, function (error, saved) {
     ...
 });
+
+//or bulk save
+const objects = ...;
+hash.save(objects, function (error, objects) {
+    ...
+});
+
+const users = ...;
+hash.save(users, {collection: 'users' }, function (error, users) {
+    ...
+});
 ```
 
-#### `get(...keys,[{ fields: String|Array<String> }],done:Function)`
+### `get(...keys,[{ fields: String|String[] }],done:Function)`
 Get single or multiple saved object using their keys
 
 ```js
@@ -142,7 +158,7 @@ hash.get(<id>, <id>, { fields: 'name, email'}, function(error, objects){
 });
 ```
 
-#### `search(options:String|Object,[{ fields: String|Array<String>}],done:Function)`
+### `search(options:String|Object,[{ fields: String|String[]}],done:Function)`
 Search existing objects.
 
 Options:
@@ -182,7 +198,7 @@ hash.search({
 });
 ```
 
-#### `remove(...keys,done:Function)`
+### `remove(...keys,done:Function)`
 Remove single or multiple saved object using their keys
 
 ```js

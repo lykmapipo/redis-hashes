@@ -2,6 +2,7 @@
 
 //dependencies
 const path = require('path');
+const _ = require('lodash');
 const expect = require('chai').expect;
 const faker = require('faker');
 const redis = require('redis-clients')();
@@ -38,12 +39,21 @@ describe('hash', function () {
     });
 
     let _id;
+    let saved;
     const object = hash.deserialize(faker.helpers.userCard());
+    const objects = [
+      hash.deserialize(faker.helpers.userCard()),
+      hash.deserialize(faker.helpers.userCard()),
+    ];
 
     it('should be able to able to save object to redis', function (done) {
       hash.save(object, function (error, _object) {
         _id = _object._id;
-        delete _object._id;
+        saved = _object;
+        expect(_object.createdAt).to.exist;
+        expect(_object.updatedAt).to.exist;
+        _object =
+          _.omit(_object, '_id', 'createdAt', 'updatedAt');
         expect(_object).to.be.eql(object);
         done(error, _object);
       });
@@ -56,8 +66,40 @@ describe('hash', function () {
           error, _object) {
           _id = _object._id;
           expect(_id).to.contain('users');
-          delete _object._id;
+          expect(_object.createdAt).to.exist;
+          expect(_object.updatedAt).to.exist;
+          _object =
+            _.omit(_object, '_id', 'createdAt', 'updatedAt');
           expect(_object).to.be.eql(object);
+          done(error, _object);
+        });
+      });
+
+    it('should be able to able to update existing object in redis',
+      function (done) {
+        hash.save(saved, function (error, _object) {
+          expect(_object._id).to.be.equal(saved._id);
+          expect(_object.createdAt).to.exist;
+          expect(_object.updatedAt).to.exist;
+          expect(_object.createdAt).to.be.equal(saved.createdAt);
+          expect(_object.updatedAt).to.not.be.equal(saved.updatedAt);
+          expect(_object.updatedAt > saved.updatedAt).to.be.true;
+          _object =
+            _.omit(_object, '_id', 'createdAt', 'updatedAt');
+          expect(_object).to.be.eql(object);
+          done(error, _object);
+        });
+      });
+
+    it('should be able to able to save multiple objects to redis',
+      function (done) {
+        hash.save(objects, function (error, _objects) {
+          let _object = _.first(_objects);
+          expect(_object.createdAt).to.exist;
+          expect(_object.updatedAt).to.exist;
+          _object =
+            _.omit(_object, '_id', 'createdAt', 'updatedAt');
+          expect(_object).to.be.eql(_.first(objects));
           done(error, _object);
         });
       });
@@ -91,7 +133,10 @@ describe('hash', function () {
     it('should be able to fetch single object', function (done) {
       hash.get(_idx, function (error, _object) {
         expect(_object._id).to.be.equal(_idx);
-        delete _object._id;
+        expect(_object.createdAt).to.exist;
+        expect(_object.updatedAt).to.exist;
+        _object =
+          _.omit(_object, '_id', 'createdAt', 'updatedAt');
         expect(_object).to.be.eql(objectx);
         done(error, _object);
       });
@@ -175,7 +220,10 @@ describe('hash', function () {
       hash.save(objectx, function (error,
         _object) {
         _idx = _object._id;
-        delete _object._id;
+        expect(_object.createdAt).to.exist;
+        expect(_object.updatedAt).to.exist;
+        _object =
+          _.omit(_object, '_id', 'createdAt', 'updatedAt');
         objectx = _object;
         done(error, _object);
       });
@@ -185,7 +233,10 @@ describe('hash', function () {
       hash.save(objectx, { collection: 'users' }, function (
         error, _object) {
         _idy = _object._id;
-        delete _object._id;
+        expect(_object.createdAt).to.exist;
+        expect(_object.updatedAt).to.exist;
+        _object =
+          _.omit(_object, '_id', 'createdAt', 'updatedAt');
         objecty = _object;
         done(error, _object);
       });
@@ -196,8 +247,11 @@ describe('hash', function () {
         expect(error).to.not.exist;
         expect(objects).to.have.have.length(1);
 
-        const _object = objects[0];
-        delete _object._id;
+        let _object = objects[0];
+        expect(_object.createdAt).to.exist;
+        expect(_object.updatedAt).to.exist;
+        _object =
+          _.omit(_object, '_id', 'createdAt', 'updatedAt');
         expect(_object).to.be.eql(objectx);
         done(error, objects);
       });
@@ -211,8 +265,11 @@ describe('hash', function () {
         expect(error).to.not.exist;
         expect(objects).to.have.have.length(1);
 
-        const _object = objects[0];
-        delete _object._id;
+        let _object = objects[0];
+        expect(_object.createdAt).to.exist;
+        expect(_object.updatedAt).to.exist;
+        _object =
+          _.omit(_object, '_id', 'createdAt', 'updatedAt');
         expect(_object).to.be.eql(objecty);
         done(error, objects);
       });
@@ -226,8 +283,9 @@ describe('hash', function () {
             function (error, objects) {
               expect(error).to.not.exist;
               expect(objects).to.have.have.length(1);
-              const _object = objects[0];
-              delete _object._id;
+              let _object = objects[0];
+              _object =
+                _.omit(_object, '_id', 'createdAt', 'updatedAt');
               expect(_object.name).to.be.eql(objectx.name);
               done(error, objects);
             });

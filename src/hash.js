@@ -8,7 +8,7 @@
  * @author lally elias<lallyelias87@gmail.com>
  * @singleton
  * @public
- * @version 0.3.0
+ * @version 0.4.0
  * @see  {@link https://github.com/lykmapipo/redis-hash}
  */
 
@@ -38,6 +38,10 @@ const defaults = {
     host: '127.0.0.1'
   }
 };
+
+
+//default fields to be ignored from search indexes
+const ignore = ['_id', 'createdAt', 'updatedAt'];
 
 
 /**
@@ -212,25 +216,25 @@ exports.indexKey = function (collection) {
  * @function
  * @name save
  * @description store object into redis as hash
- * @param  {Object}   object object to be stored
+ * @param  {Object|Object[]}   objects objects to be stored
  * @param  {Object}   [options] options to be used on storage
+ * @param  {Boolean}   [options.index] if index is allowed or not. default true
+ * @param  {String[]}   [options.ignore] field to be excluded from search indexes
+ * @param  {String}   [options.collection] collection name used in key 
+ *                                         namespacing. default hash
  * @param  {Function} done   a callback to invoke on success or failure
  * @return {Object}          created and persisted object with key added
  * @since 0.1.0
+ * @version 0.2.0
  * @public
  */
-exports.save = exports.create = function (object, options, done) {
+exports.save = exports.create = function (objects, options, done) {
   //TODO create and index operations atomically
   //TODO fork reds and allow to pass multi on its operations
-
-  //ensure object
-  object = _.merge({}, object);
-
-  //ensure js types
-  object = exports.deserialize(object);
+  //TODO refactor
 
   //normalize arguments
-  if (arguments.length === 2) {
+  if (_.isFunction(options)) {
     done = options;
     options = {};
   }
@@ -239,51 +243,83 @@ exports.save = exports.create = function (object, options, done) {
   options = _.merge({}, {
     index: true,
     collection: 'hash',
-    ignore: ['_id']
+    ignore: ignore
   }, options);
 
   //ensure _id is ignored on indexing
-  options.ignore = _.uniq(['_id'].concat(options.ignore));
+  options.ignore = _.uniq(ignore.concat(options.ignore));
 
-  //TODO validate key to ensure it start with required prefix
+  //collect for multi create
+  objects = [].concat(objects);
 
-  //obtain key from the object to be saved
-  //or generate one
-  object._id = object._id || exports.key([options.collection, uuid.v1()]);
+  //ensure they are objects
+  objects = _.map(objects, function (object) { return _.merge({}, object); });
 
-  //flat the object
-  let flatObject = flat(object);
+  //start multi save
+  const _client = exports.multi();
 
-  //serialize flattened object
-  flatObject = exports.serialize(flatObject);
+  //iterate & map
+  objects = _.map(objects, function (object) {
 
-  //ensure client
-  exports.client();
+    //ensure js types
+    object = exports.deserialize(object);
 
-  //ensure index
-  if (options.index) {
-    //prepare collection search index
-    const indexKey = exports.indexKey(options.collection);
-    exports.indexes[indexKey] =
-      exports.indexes[indexKey] || exports.reds.createSearch(indexKey);
+    //TODO validate key to ensure it start with required prefix
+
+    //ensure timestamps
+    if (object._id) {
+      //update timestamps
+      object.createdAt = object.createdAt || Date.now();
+      object.updatedAt = Date.now();
+    } else {
+      //set timestamps
+      object.createdAt = object.updatedAt = Date.now();
+    }
+
+    //obtain key from the object to be saved
+    //or generate one
+    object._id = object._id || exports.key([options.collection, uuid.v1()]);
+
+    //flat the object
+    let flatObject = flat(object);
+
+    //serialize flattened object
+    flatObject = exports.serialize(flatObject);
+
+    //ensure index
+    if (options.index) {
+      //prepare collection search index
+      const indexKey = exports.indexKey(options.collection);
+      exports.indexes[indexKey] =
+        exports.indexes[indexKey] || exports.reds.createSearch(indexKey);
 
 
-    //index flat object
-    _.forEach(flatObject, function (value, key) {
-      //ignore object key and ignored fields from indexes
-      key = _.last(key.split('.')); //obtain actual field name after flatting the object
-      if (!_.has(options.ignore, key)) {
-        //ensure indexes
-        value = String(value);
-        exports.indexes[indexKey].index(value, flatObject._id);
-      }
-    });
-  }
+      //index flat object
+      _.forEach(flatObject, function (value, key) {
+        //ignore object key and ignored fields from indexes
+        key = _.last(key.split('.')); //obtain actual field name after flatting the object
+        if (!_.has(options.ignore, key)) {
+          //ensure indexes
+          value = String(value);
+          exports.indexes[indexKey].index(value, flatObject._id);
+        }
+      });
+    }
 
+    //queue save
+    _client.hmset(flatObject._id, flatObject);
 
-  //save the object and flush indexes
-  exports.client().hmset(flatObject._id, flatObject, function afterSave(error) {
-    done(error, object);
+    //collect mapped object
+    return object;
+
+  });
+
+  //ensure single or multi objects
+  objects = objects.length === 1 ? _.first(objects) : objects;
+
+  //save the objects and flush indexes
+  _client.exec(function afterSave(error) {
+    done(error, objects);
   });
 
 };
@@ -293,7 +329,7 @@ exports.save = exports.create = function (object, options, done) {
  * @function
  * @name get
  * @description get objects from redis
- * @param  {String|[String]}   keys    a single or collection of existing keys
+ * @param  {String|String[]|...String}   keys a single or collection of existing keys
  * @param  {Object} [criteria] optional selection criteria
  * @param  {Array} [criteria.fields] optional fields to select
  * @param  {Function} done   a callback to invoke on success or failure
@@ -307,6 +343,8 @@ exports.get = function (...keys) {
 
   //normalize keys to array
   keys = [].concat(...keys);
+
+  //TODO ensure they are valid keys
 
   //compact and ensure unique keys
   keys = _.uniq(_.compact(keys));
@@ -401,7 +439,7 @@ exports.get = function (...keys) {
  * @function
  * @name remove
  * @description remove objects from redis
- * @param  {String|[String]}   keys    a single or collection of existing keys
+ * @param  {String|String[]|...String} keys  a single or collection of existing keys
  * @param  {Function} done   a callback to invoke on success or failure
  * @return {Object|[Object]} single or collection of existing hash
  * @since 0.3.0
@@ -456,7 +494,7 @@ exports.remove = function (...keys) {
  * @param  {String}   options.collection    searched collections. default to hash
  * @param  {String}   options.type    search operator(and / or). default to or
  * @param  {String}   options.q    search term. default to ''
- * @param  {String|Array<String>}   options.fields    fields to select
+ * @param  {String|String[]}   options.fields    fields to select
  * @param  {Function} done   a callback to invoke on success or failure
  * @since 0.1.0
  * @public
@@ -514,10 +552,13 @@ exports.search = function (options, done) {
 //TODO pagination
 //TODO count
 //TODO sorting
+//TODO add ability to score base on fields
 //TODO add timestamps(createdAt, updatedAt)
 //TODO implement remove
 //TODO metadata
 //TODO support unique secondary indexes
+//TODO ensure id's are unique(i.e not exists)
 //TODO build metadata if not provided
 //TODO benchmarks
 //TODO improve test coverage
+//TODO notify after create, update, delete
