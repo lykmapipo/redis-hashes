@@ -314,7 +314,7 @@ describe('hash', function () {
           if (error) { done(error); }
 
           //continue with assertions
-          expect(result).to.exists;
+          expect(result).to.exist;
           //ensure doesnt exists
           hash.get(_id, function (error, found) {
             expect(error).to.exist;
