@@ -22,7 +22,7 @@ const uuid = require('uuid');
 const reds = require('reds');
 const flat = require('flat').flatten;
 const unflat = require('flat').unflatten;
-const redis = require('redis-clients')();
+let redis = require('redis-clients');
 
 
 //local dependencies
@@ -51,7 +51,7 @@ const ignore = ['_id', 'createdAt', 'updatedAt'];
  * @since 0.1.0
  * @public
  */
-exports.defaults = _.merge({}, defaults, redis.defaults);
+exports.defaults = _.merge({}, defaults);
 
 
 /**
@@ -156,6 +156,12 @@ exports.indexes = {};
  * @private
  */
 exports.client = function () {
+
+  //initialize redis clients internal
+  if (_.isFunction(redis)) {
+    redis = redis(exports.defaults);
+  }
+
   //obtain current redis client
   const _client = redis.client();
 
