@@ -212,7 +212,7 @@ exports.multi = function () {
  * @public
  */
 exports.indexKey = function (collection) {
-  collection = [].concat(collection).concat(['search']);
+  collection = [].concat('indexes').concat(collection).concat(['search']);
   const indexKey = exports.key(collection);
   return indexKey;
 };
@@ -555,8 +555,75 @@ exports.search = function (options, done) {
 };
 
 
+/**
+ * @function
+ * @name count
+ * @description count size of object(hash) saved under specified collection(s)
+ * @param  {String|String[]|...String} collection  a single or collection of collection names
+ * @param  {Function} done   a callback to invoke on success or failure
+ * @return {Object} count of number of objects(hashed) in each collection
+ * @since 0.5.0
+ * @public
+ */
+exports.count = function (...collections) {
+
+  //normalize collections to array
+  collections = [].concat(...collections);
+
+  //compact and ensure unique collections
+  collections = _.uniq(_.compact(collections));
+
+  //obtain callback
+  const done = _.last(collections);
+
+  //drop callback if provided
+  if (_.isFunction(done)) {
+    collections = _.initial(collections);
+  }
+
+  //ensure collections
+  if (collections && collections.length > 0) {
+
+    const afterCount = function (error, counts) {
+
+      //normalize counters
+      const counters = _.map(collections, function (collection, key) {
+        return {
+          collection: collection,
+          count: _.isArray(counts) ? counts[key] : counts
+        };
+      });
+
+      done(error, counters);
+
+    };
+
+    //prepare counte patterns
+    let patterns = _.map(collections, function (collection) {
+      return exports.key([collection, '*']);
+    });
+    patterns = [].concat(patterns).concat(afterCount);
+
+    //ensure redis clients initialized
+    exports.client();
+
+    //count using redis clients helpers
+    redis.count(...patterns);
+
+  }
+
+  //reply with bad request
+  //as no collections specified
+  else {
+    let error = new Error('Missing Collections');
+    error.status = 400;
+    done(error);
+  }
+
+};
+
+
 //TODO pagination
-//TODO count
 //TODO sorting
 //TODO add ability to score base on fields
 //TODO add timestamps(createdAt, updatedAt)

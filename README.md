@@ -7,6 +7,8 @@ redis-hashes
 
 redis hash utilities for nodejs
 
+*Note!: From v0.5+ all indexes keys will be using format <prefix>:indexes:<collection>:...*
+
 ## Requirements
 - [Redis 2.8.0+](http://redis.io/)
 - [NodeJS 8.1.4+](https://nodejs.org/en/)
@@ -50,6 +52,18 @@ hash.get(<id>, <id>, function(error, users){
 //search users collection
 hash.search(<search_query>, function (error, users) {
     ...
+});
+
+
+//count number of users
+hash.count('users', function(error, counters){
+  ...
+});
+
+
+//count number of users and orders
+hash.count('users', 'orders', function(error, counters){
+  ...
 });
 
 
@@ -217,6 +231,22 @@ hash.remove([<id>, <id>], function(error, objects){
 hash.remove(<id>, <id>, function(error, objects){
    ...
 });
+```
+
+### `count(...collections, done:Function)`
+Count number of saved object(s) on specified collection(s)
+
+```js
+//count in single collection
+hash.count('users', function(error, counters){
+   ...
+});
+
+//count in multiple collections
+hash.count('users', 'orders', 'contacts', function(error, counters){
+   ...
+});
+
 ```
 
 ## References

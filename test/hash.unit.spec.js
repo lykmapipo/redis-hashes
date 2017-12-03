@@ -327,6 +327,62 @@ describe('hash', function () {
 
   });
 
+  describe('count', function () {
+
+    before(function () {
+      redis.clear();
+    });
+
+    before(function (done) {
+      const users = [faker.helpers.userCard(), faker.helpers.userCard()];
+      hash.save(users, { collection: 'users' }, done);
+    });
+
+    before(function (done) {
+      const contacts = [faker.helpers.userCard()];
+      hash.save(contacts, { collection: 'contacts' }, done);
+    });
+
+
+    it('should be able to count size of hashes in a collection',
+      function (done) {
+
+        hash
+          .count('users', function (error, counters) {
+            expect(error).to.not.exist;
+            expect(counters).to.exist;
+            expect(_.first(counters).collection).to.equal('users');
+            expect(_.first(counters).count).to.equal(2);
+            done(error, counters);
+          });
+
+      });
+
+
+    it('should be able to count size of hashes in collections',
+      function (done) {
+
+        hash
+          .count('users', 'contacts', function (error, counters) {
+            expect(error).to.not.exist;
+            expect(counters).to.exist;
+            
+            expect(_.first(counters).collection).to.equal('users');
+            expect(_.first(counters).count).to.equal(2);
+
+            expect(_.last(counters).collection)
+              .to.equal('contacts');
+            expect(_.last(counters).count).to.equal(1);
+
+            done(error, counters);
+          });
+
+      });
+
+
+  });
+
+
   after(function (done) {
     redis.clear(done);
   });
