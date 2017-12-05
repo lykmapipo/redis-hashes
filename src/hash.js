@@ -259,7 +259,11 @@ exports.save = exports.create = function (objects, options, done) {
   objects = [].concat(objects);
 
   //ensure they are objects
-  objects = _.map(objects, function (object) { return _.merge({}, object); });
+  objects = _.map(objects, function (object) {
+    object = _.merge({}, object);
+    object = _.omitBy(object, _.isUndefined); //remove undefined properties
+    return object;
+  });
 
   //start multi save
   const _client = exports.multi();
@@ -453,6 +457,9 @@ exports.get = function (...keys) {
  */
 exports.remove = function (...keys) {
   //TODO refactor to query?
+  //TODO remove search indexes too?
+  //TODO try use multi key delete see https://redis.io/commands/del
+  //TODO support key* deletion
 
   //normalize keys to array
   keys = [].concat(...keys);

@@ -1,6 +1,6 @@
 {
   "name": "redis-hashes",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "redis hash utilities for nodejs",
   "main": "index.js",
   "scripts": {
