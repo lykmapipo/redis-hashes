@@ -447,6 +447,60 @@ exports.get = function (...keys) {
 
 /**
  * @function
+ * @name all
+ * @description get all objects of specified collection from redis
+ * @param  {Object} [options] optional selection criteria
+ * @param  {String} [criteria.collection] collection to load from 
+ * @param  {Array} [criteria.fields] optional fields to select
+ * @param  {Function} done   a callback to invoke on success or failure
+ * @return {Object|[Object]} single or collection of existing hash
+ * @since 0.1.0
+ * @public
+ */
+exports.all = function (options, done) {
+
+  //normalize arguments
+  if (_.isFunction(options)) {
+    done = options;
+    options = {};
+  }
+
+  //ensure options
+  options = _.merge({}, { collection: 'hash' }, options);
+
+  //obtain redis client
+  const client = exports.client();
+
+  //prepare key pattern
+  const pattern = exports.key(options.collection, '*');
+
+
+  async.waterfall([
+
+    function obtainKeys(next) { //obtain all hash keys
+      client.keys(pattern, next);
+    },
+
+    function fetchObjects(keys, next) { //fetch collection objects
+      if (options.fields) {
+        exports.get(keys, { fields: options.fields }, next);
+      } else {
+        exports.get(keys, next);
+      }
+    },
+
+    function normalizeResults(results, next) { //normalize results
+      results = [].concat(results);
+      next(null, results);
+    }
+
+  ], done);
+
+};
+
+
+/**
+ * @function
  * @name remove
  * @description remove objects from redis
  * @param  {String|String[]|...String} keys  a single or collection of existing keys
@@ -633,8 +687,6 @@ exports.count = function (...collections) {
 //TODO pagination
 //TODO sorting
 //TODO add ability to score base on fields
-//TODO add timestamps(createdAt, updatedAt)
-//TODO implement remove
 //TODO metadata
 //TODO support unique secondary indexes
 //TODO ensure id's are unique(i.e not exists)

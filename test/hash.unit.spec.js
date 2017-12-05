@@ -205,6 +205,20 @@ describe('hash', function () {
         });
       });
 
+
+    it('should be able to fetch all objects', function (done) {
+
+      hash
+        .all({ collection: 'hash' }, function (error, objects) {
+          expect(error).to.not.exist;
+          expect(objects).to.have.have.length(2);
+          expect(_.first(objects)).to.be.an('object');
+          expect(_.last(objects)).to.be.an('object');
+          done(error, objects);
+        });
+
+    });
+
   });
 
   describe('search', function () {
@@ -366,7 +380,7 @@ describe('hash', function () {
           .count('users', 'contacts', function (error, counters) {
             expect(error).to.not.exist;
             expect(counters).to.exist;
-            
+
             expect(_.first(counters).collection).to.equal('users');
             expect(_.first(counters).count).to.equal(2);
 
