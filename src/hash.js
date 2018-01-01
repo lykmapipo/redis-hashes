@@ -123,6 +123,15 @@ exports.deserialize = function (object) {
 
   });
 
+  //ensure timestamps are always in date
+  if (object.createdAt) {
+    object.createdAt = new Date(object.createdAt);
+  }
+
+  if (object.updatedAt) {
+    object.updatedAt = new Date(object.updatedAt);
+  }
+
   return object;
 };
 
@@ -279,11 +288,11 @@ exports.save = exports.create = function (objects, options, done) {
     //ensure timestamps
     if (object._id) {
       //update timestamps
-      object.createdAt = object.createdAt || Date.now();
-      object.updatedAt = Date.now();
+      object.createdAt = object.createdAt || new Date();
+      object.updatedAt = new Date();
     } else {
       //set timestamps
-      object.createdAt = object.updatedAt = Date.now();
+      object.createdAt = object.updatedAt = new Date();
     }
 
     //obtain key from the object to be saved

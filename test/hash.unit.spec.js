@@ -81,8 +81,8 @@ describe('hash', function () {
           expect(_object._id).to.be.equal(saved._id);
           expect(_object.createdAt).to.exist;
           expect(_object.updatedAt).to.exist;
-          expect(_object.createdAt).to.be.equal(saved.createdAt);
-          expect(_object.updatedAt).to.not.be.equal(saved.updatedAt);
+          expect(_object.createdAt).to.be.eql(saved.createdAt);
+          expect(_object.updatedAt).to.not.be.eql(saved.updatedAt);
           expect(_object.updatedAt > saved.updatedAt).to.be.true;
           _object =
             _.omit(_object, '_id', 'createdAt', 'updatedAt');
